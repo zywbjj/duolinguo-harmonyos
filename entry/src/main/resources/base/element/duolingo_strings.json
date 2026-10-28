@@ -1,0 +1,7 @@
+{
+  "string": [
+    { "name": "duo_ability_name", "value": "Duolinguo" },
+    { "name": "duo_ability_description", "value": "在鸿蒙设备上继续语言学习" },
+    { "name": "duo_microphone_reason", "value": "用于官方学习网页中的口语题录音" }
+  ]
+}

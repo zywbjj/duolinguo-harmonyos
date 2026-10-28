@@ -1,0 +1,26 @@
+Offline English speech components in Duolinguo 1.0.7
+
+vosk-browser 0.0.8, Ciaran O'Reilly, Apache-2.0.
+Published package: https://registry.npmjs.org/vosk-browser/0.0.8
+Repository declared by publisher: https://github.com/ccoreilly/vosk-browser
+The published dist/vosk.js (including its WebAssembly worker) is bundled unchanged.
+Its dependency uuid 9.0.0 is MIT licensed; see licenses/uuid-MIT.txt.
+Existing Microsoft helper copyright/permission notices remain in the vendor bundle.
+
+Vosk API / Kaldi speech recognition: Apache-2.0.
+https://github.com/alphacep/vosk-api
+https://github.com/kaldi-asr/kaldi
+
+vosk-model-small-en-us-0.15, Copyright 2020 Alpha Cephei Inc, Apache-2.0.
+Official model catalog and license: https://alphacephei.com/vosk/models
+Browser-ready archive published by the vosk-browser author:
+https://ccoreilly.github.io/vosk-browser/models/vosk-model-small-en-us-0.15.tar.gz
+The archive is bundled unchanged. See licenses/model-README.txt.
+
+Full Apache license: licenses/Apache-2.0.txt.
+Pinned sizes and SHA-256 digests: assets.json.
+
+duo-offline-speech.js is the application-specific adapter. It connects actual
+microphone audio to the local decoder and forwards genuine text results to the
+website's existing speaking component. It does not supply expected answers,
+scores, lesson-completion requests, or a cloud speech upload service.

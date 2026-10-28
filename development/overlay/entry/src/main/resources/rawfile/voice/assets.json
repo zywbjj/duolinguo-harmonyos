@@ -1,0 +1,16 @@
+{
+  "engine": "vosk-browser 0.0.8",
+  "model": "vosk-model-small-en-us-0.15",
+  "assets": [
+    {
+      "file": "vosk-0.0.8.js",
+      "bytes": 5804767,
+      "sha256": "29504515526e974f4cb053cf08811c4de5fb2a74007c0a5a957db50eaa8d5d0c"
+    },
+    {
+      "file": "en-us-0.15.tar.gz",
+      "bytes": 41184862,
+      "sha256": "f0b24bb92a48ca575b6a96500d6b543f0f079c573dfe85bbe16001fc0404e1d8"
+    }
+  ]
+}

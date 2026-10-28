@@ -1,0 +1,16 @@
+{
+  "name": "duolingo-harmonyos-source",
+  "version": "0.12.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "install:project": "node scripts/install-into-project.mjs"
+  },
+  "dependencies": {
+    "json5": "2.2.3"
+  }
+}

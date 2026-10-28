@@ -1,0 +1,6 @@
+{
+  "layered-image": {
+    "background": "$media:duo_icon_background",
+    "foreground": "$media:duo_icon_foreground"
+  }
+}

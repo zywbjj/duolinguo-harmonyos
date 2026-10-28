@@ -1,0 +1,74 @@
+<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><meta charset="utf-8"><style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;font:16px sans-serif;background:#fff}button{height:50px;border:0;border-radius:12px;background:#4545ff;color:white;width:100%}
+nav{position:fixed;left:0;bottom:0;width:100%;height:56px;background:white;display:flex;z-index:2}nav a{flex:1;height:56px;display:flex;align-items:center;justify-content:center;color:black}
+.scroll{position:absolute;inset:0;overflow-y:auto}.spacer{height:1100px;background:linear-gradient(#e5f6ff,#fff)}
+.footer{position:fixed;bottom:56px;left:12px;right:12px;height:80px;z-index:1;background:white}
+.modal{position:fixed;inset:0;background:#080f44;z-index:10;display:flex;flex-direction:column;justify-content:flex-end;padding:12px;color:white}
+.sticky{position:sticky;bottom:0;padding:8px;background:white}
+#native-dock{position:fixed;left:12px;right:12px;bottom:28px;height:54px;border-radius:28px;background:#cbeaffaa;z-index:50;pointer-events:none}
+</style></head><body><script>
+const webIconScript=__ICON_FUNCTION__;
+const webContentInsetScript=__INSET_FUNCTION__;
+const makeScript=__NAVIGATION_FUNCTION__;
+const paths=['/learn','/sounds','/practice-hub','/quests','/shop','/profile/fixture'];
+const frame=()=>new Promise(resolve=>requestAnimationFrame(resolve));
+function run(command='scan'){
+  const source=makeScript(command,-1,location.pathname,'',86,innerHeight)
+    .replace(/const allowed = [^;]+;/,'const allowed = [location.origin];');
+  return JSON.parse((0,eval)(source));
+}
+function nav(){return '<nav id="original-nav">'+paths.map(path=>'<a href="'+path+'">'+path+'</a>').join('')+'</nav><div id="native-dock"></div>';}
+async function page(kind){
+  run('detach');history.replaceState({},'','/learn');
+  const documentFlow=kind==='document'||kind==='fixed-long';
+  document.documentElement.style.overflow=documentFlow?'visible':'hidden';
+  document.documentElement.style.height=documentFlow?'auto':'100%';
+  document.body.style.height=documentFlow?'auto':'100%';document.body.style.overflow=documentFlow?'visible':'hidden';
+  const content=kind==='fixed-long'?'<main><div class="spacer"></div><button id="target">Last content behind fixed actions</button></main><footer class="footer"><button>Fixed actions</button></footer>':
+    kind==='document'?'<main><div class="spacer"></div><button id="target">Last content button</button></main>':
+    kind==='nested'?'<main class="scroll"><div class="spacer"></div><button id="target">Nested last button</button></main>':
+    kind==='sticky'?'<main class="scroll" style="bottom:56px"><div class="spacer"></div><footer class="sticky"><button id="target">Sticky action</button></footer></main>':
+    '<main>Static page content</main><footer class="footer"><button id="target">Fixed action above original nav</button></footer>';
+  document.body.innerHTML=content+nav();scrollTo(0,0);await frame();
+}
+function bottom(kind){
+  if(kind==='nested'||kind==='sticky'){const s=document.querySelector('.scroll');s.scrollTop=s.scrollHeight;}
+  else scrollTo(0,document.scrollingElement.scrollHeight);
+}
+window.runContentChecks=async()=>{
+  const results=[];
+  for(const kind of ['document','nested','fixed','sticky','fixed-long']){
+    await page(kind);bottom(kind);await frame();
+    const target=document.getElementById('target'),before=target.getBoundingClientRect().bottom;
+    if(!run('attach').attached)throw new Error(kind+': failed to attach');
+    bottom(kind);await frame();run('scan');bottom(kind);await frame();
+    const after=target.getBoundingClientRect().bottom,limit=kind==='fixed-long'?document.querySelector('.footer').getBoundingClientRect().top-8:innerHeight-94;
+    if(after>limit+1)throw new Error(kind+': action still covered: '+after+' > '+limit);
+    const rect=target.getBoundingClientRect(),hit=document.elementFromPoint(rect.left+rect.width/2,rect.top+rect.height/2);
+    if(hit!==target&&!target.contains(hit))throw new Error(kind+': action not hit-testable');
+    const stable=after;for(let n=0;n<12;n++)run('scan');await frame();
+    if(Math.abs(target.getBoundingClientRect().bottom-stable)>1)throw new Error(kind+': repeated scans moved the footer');
+    const host=kind==='nested'||kind==='sticky'?document.querySelector('.scroll'):document.scrollingElement;
+    run('detach');await frame();
+    if(host.style.paddingBottom!==''||document.querySelector('.footer')?.style.bottom)throw new Error(kind+': insets were not restored');
+    results.push({kind,before,after,limit,clickable:true,stable:true,restored:true});
+  }
+  await page('fixed');run('attach');document.querySelector('.footer').style.bottom='70px';run('scan');run('detach');
+  if(document.querySelector('.footer').style.bottom!=='70px')throw new Error('Website style update was overwritten on detach');
+  await page('fixed');run('attach');
+  const modal=document.createElement('section');modal.className='modal';modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');
+  modal.innerHTML='<p>Fullscreen promotion</p><button id="modal-action">Try / close action</button>';document.body.append(modal);await frame();
+  const covered=run('scan');
+  if(covered.items.length!==0||!window.__duoNativeNavigationV2.occluded)throw new Error('Fullscreen modal did not suspend native navigation');
+  if(getComputedStyle(document.getElementById('original-nav')).opacity!=='0')throw new Error('Old footer exposed behind modal');
+  document.getElementById('native-dock').style.display='none';
+  const action=document.getElementById('modal-action'),r=action.getBoundingClientRect();
+  if(document.elementFromPoint(r.left+r.width/2,r.top+r.height/2)!==action)throw new Error('Modal action unavailable');
+  modal.remove();await frame();const returned=run('scan');
+  if(returned.items.length!==6||window.__duoNativeNavigationV2.occluded)throw new Error('Menu did not recover after modal close');
+  if(!run('attach').attached)throw new Error('Menu acknowledgement failed');
+  if(getComputedStyle(document.getElementById('original-nav')).opacity!=='0')throw new Error('Original menu exposed on return');
+  run('detach');
+  return{done:true,ok:true,scrollAndActionCases:results.length,fullscreenModalSuspended:true,modalCloseRecovered:true,websiteStylePreserved:true,results};
+};
+</script></body></html>

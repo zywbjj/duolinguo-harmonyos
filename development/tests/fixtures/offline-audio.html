@@ -1,0 +1,28 @@
+<!doctype html><html><body>Offline English capture adapter fixture<script src="/bridge.js"></script><script>
+window.runAudioCheck = async () => {
+  let r, feedContext, source, stream, limit;
+  const started=performance.now(); let captureRequests=0,finals=0,error='',transcripts=[];
+  try {
+    navigator.mediaDevices.getUserMedia=async constraints=>{
+      if(!constraints.audio || constraints.video)throw new Error('Unexpected capture constraints');
+      captureRequests++; feedContext=new AudioContext({sampleRate:16000});
+      const decoded=await feedContext.decodeAudioData(await(await fetch('/test.wav')).arrayBuffer());
+      const destination=feedContext.createMediaStreamDestination();stream=destination.stream;
+      source=feedContext.createBufferSource();source.buffer=decoded;source.connect(destination);
+      return stream;
+    };
+    r=new window.webkitSpeechRecognition();r.lang='en-US';r.continuous=true;r.interimResults=true;
+    await new Promise((resolve,reject)=>{
+      limit=setTimeout(()=>reject(new Error('Adapter timed out at '+window.__duoAudioV2.stage)),60000);
+      r.onaudiostart=()=>{feedContext.resume().then(()=>{source.start();setTimeout(()=>r.stop(),(source.buffer.duration+1.2)*1000);});};
+      r.onresult=e=>{for(let i=e.resultIndex;i<e.results.length;i++)if(e.results[i].isFinal){finals++;transcripts.push(e.results[i][0].transcript);}};
+      r.onerror=e=>{error=e.error;};r.onend=()=>{clearTimeout(limit);resolve();};r.start();
+    });
+    const transcript=transcripts.join(' '),tracksEnded=!!stream&&stream.getTracks().every(t=>t.readyState==='ended');
+    window.__duoBrowserCheck={done:true,ok:captureRequests===1&&tracksEnded&&finals>0&&!error&&transcript.includes('one zero zero zero one')&&transcript.includes('zero one eight zero three'),
+      captureRequests,tracksEnded,finals,error,transcript,totalMs:Math.round(performance.now()-started),stage:window.__duoAudioV2.stage,
+      physicalMicrophoneUsed:false,cloudSpeechServiceUsed:false};
+  }catch(error){window.__duoBrowserCheck={done:true,ok:false,message:String(error),stage:window.__duoAudioV2.stage};}
+  finally{clearTimeout(limit);r?.abort();try{source?.stop();}catch{}await feedContext?.close();dispatchEvent(new Event('pagehide'));}
+};
+</script></body></html>

@@ -1,0 +1,14 @@
+node_modules/
+.local-browser-check/
+.hvigor/
+.idea/
+.duolingo-backups/
+build/
+oh_modules/
+local.properties
+*.p12
+*.p7b
+*.cer
+*.hap
+*.log
+
